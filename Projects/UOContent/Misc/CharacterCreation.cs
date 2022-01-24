@@ -76,7 +76,7 @@ namespace Server.Misc
         private static readonly TimeSpan BadStartMessageDelay = TimeSpan.FromSeconds(3.5);
 
         private static readonly CityInfo _newHavenInfo =
-            new("New Haven", "The Bountiful Harvest Inn", 3503, 2574, 14, Map.Trammel);
+            new("Britain", "The Wayfarer's Inn", 1075074, 1602, 1591, 20, Map.Felucca);
 
         public static void Initialize()
         {

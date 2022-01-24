@@ -214,6 +214,7 @@ namespace Server.Misc
                 // ignored
             }
         }
+        
 
         private static void EventSink_DeleteRequest(NetState state, int index)
         {

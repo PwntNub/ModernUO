@@ -920,6 +920,7 @@ namespace Server
             return total + bonus;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Shuffle<T>(this IList<T> list)
         {
             var count = list.Count;
@@ -930,6 +931,7 @@ namespace Server
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Shuffle<T>(this Span<T> list)
         {
             var count = list.Length;
@@ -1020,6 +1022,21 @@ namespace Server
         public static bool RandomBool() => RandomSources.Source.NextBool();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double RandomMinMax(double min, double max)
+        {
+            if (min > max)
+            {
+                (min, max) = (max, min);
+            }
+            else if (min == max)
+            {
+                return min;
+            }
+
+            return min + RandomSources.Source.NextDouble() * (max - min);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint RandomMinMax(uint min, uint max)
         {
             if (min > max)
@@ -1078,6 +1095,15 @@ namespace Server
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double RandomDouble() => RandomSources.Source.NextDouble();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Point3D RandomPointIn(Rectangle2D rect, Map map)
+        {
+            var x = Random(rect.X, rect.Width);
+            var y = Random(rect.Y, rect.Height);
+
+            return new Point3D(x, y, map.GetAverageZ(x, y));
+        }
 
         /// <summary>
         ///     Random pink, blue, green, orange, red or yellow hue
@@ -1527,6 +1553,41 @@ namespace Server
             hour = date.Hour;
             min = date.Minute;
             sec = date.Second;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T[] Combine<T>(this IList<T> source, params IList<T>[] arrays) =>
+            source.Combine(false, arrays);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T[] CombinePooled<T>(this IList<T> source, params IList<T>[] arrays) =>
+            source.Combine(true, arrays);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T[] Combine<T>(this IList<T> source, bool pooled, params IList<T>[] arrays)
+        {
+            var totalLength = source.Count;
+            foreach (var arr in arrays)
+            {
+                totalLength += arr.Count;
+            }
+
+            if (totalLength == 0)
+            {
+                return Array.Empty<T>();
+            }
+
+            var combined = pooled ? STArrayPool<T>.Shared.Rent(totalLength) : new T[totalLength];
+
+            source.CopyTo(combined, 0);
+            var position = source.Count;
+            foreach (var arr in arrays)
+            {
+                arr.CopyTo(combined, position);
+                position += arr.Count;
+            }
+
+            return combined;
         }
     }
 }
